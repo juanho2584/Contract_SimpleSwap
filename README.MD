@@ -1,92 +1,71 @@
-# 🌀 SimpleSwap
+🌀 SimpleSwap - Detailed Explanation
 
-## Description
+Overview:
+----------
+SimpleSwap is a decentralized exchange (DEX) smart contract implemented in Solidity. Inspired by the core mechanics of Uniswap, it allows users to:
 
-**SimpleSwap** is a smart contract written in Solidity that implements a basic decentralized exchange (DEX), inspired by Uniswap's model. It allows any user to:
+1. Add liquidity to a pool of two ERC-20 tokens.
+2. Remove liquidity from an existing pool.
+3. Swap tokens between pairs with an automatic pricing mechanism.
+4. Query token prices and expected swap outputs.
 
-- Add and remove liquidity to/from an ERC-20 token pool.
-- Perform token swaps between available pairs.
-- Check prices and output estimates before executing operations.
+Core Concepts:
+--------------
 
-The contract is optimized for gas efficiency and protected against reentrancy attacks using OpenZeppelin's `ReentrancyGuard`.
+1. Liquidity Pools:
+   - Each token pair (tokenA, tokenB) is associated with a 'LiquidityData' structure.
+   - This structure contains:
+     • totalSupply: Total amount of liquidity tokens issued.
+     • balance: Mapping of user addresses to their liquidity balance.
+     • reserves: Contains current token reserves (reserveA and reserveB).
 
----
+2. Events:
+   - LiquidityAdded: Emitted when a user provides liquidity to a pool.
+   - LiquidityRemoved: Emitted when a user withdraws liquidity.
+   - TokensSwapped: Emitted when a swap is successfully executed.
 
-## ✨ Features
+Functions:
+----------
 
-- ✅ Proportional liquidity addition/removal with auto-calculation.
-- 🔁 Token-to-token swaps with 0.3% fee.
-- � Price calculations and output estimates (`getPrice`, `getAmountOut`).
-- 🛡️ Reentrancy protection (ReentrancyGuard).
-- 💾 Storage optimization using `uint128` and compact structures.
-- 📊 Event logging for traceability.
+1. addLiquidity(tokenA, tokenB, amountADesired, amountBDesired, amountAMin, amountBMin, to, deadline)
+   - Allows a user to provide liquidity to a token pair.
+   - Calculates optimal token proportions and ensures slippage protection.
+   - Mints and assigns liquidity tokens to the 'to' address.
 
----
+2. removeLiquidity(tokenA, tokenB, liquidity, amountAMin, amountBMin, to, deadline)
+   - Allows a user to withdraw their share of the liquidity pool.
+   - Burns the caller’s liquidity tokens and returns tokenA and tokenB.
+   - Enforces slippage protection and deadline.
 
-## 🧱 Data Structures
+3. swapExactTokensForTokens(amountIn, amountOutMin, path, to, deadline)
+   - Swaps an exact amount of input tokens for another token.
+   - Only supports two-token path (i.e., a single token pair).
+   - Uses the constant product formula for price calculation.
+   - Transfers output tokens to the 'to' address.
 
-### `Reserves`
-Stores token pair reserves using `uint128` for gas savings.
+4. getPrice(tokenA, tokenB)
+   - Returns the current price of tokenA denominated in tokenB.
+   - Result is scaled by 1e18 to support decimals.
 
-```solidity
-struct Reserves {
-    uint128 reserveA;
-    uint128 reserveB;
-}
-LiquidityData
-Contains all pool-related information:
-Current reserves.
-Total liquidity tokens issued.
-User liquidity token balances.
+5. getAmountOut(amountIn, reserveIn, reserveOut)
+   - Pure function used internally and externally to calculate the output amount of a swap based on constant product formula.
+   - Ensures input and reserve values are valid.
 
-struct LiquidityData {
-    uint totalSupply;
-    mapping(address => uint) balance;
-    Reserves reserves;
-}
+Error Handling (Shortstrings):
+------------------------------
+For gas efficiency, error messages are shortened:
+  - "expired" — Operation attempted after deadline.
+  - "identical" — tokenA and tokenB are the same.
+  - "invalid_amt" — One or both desired amounts are zero.
+  - "slippage" — Output/input does not meet minimum requirements.
+  - "zero_liq" — Liquidity provided is zero.
+  - "insuff_bal" — User lacks sufficient liquidity balance.
+  - "invalid_path" — Swap path is not exactly two tokens.
+  - "zero_input" — Input amount is zero.
+  - "zero_resv"/"bad_resv" — Reserves are invalid or zero.
 
-⚙️ Core Functionalities
-addLiquidity(...)
-Allows adding liquidity to a token pair.
-For the first deposit: liquidity = sqrt(amountA * amountB).
-Subsequent deposits are proportional to current reserves.
-Returns final deposited amounts and issued liquidity tokens.
+Security:
+---------
+- Uses OpenZeppelin's ReentrancyGuard to prevent reentrancy attacks on liquidity and swap operations.
+- Input validation is performed for deadlines, amount values, and reserve checks.
 
-removeLiquidity(...)
-Withdraws liquidity from a pair, returning original tokens proportionally.
-Requires minimum acceptable returns (amountAMin, amountBMin).
-Burns liquidity tokens.
-
-swapExactTokensForTokens(...)
-Swaps an exact token amount for another.
-Uses constant product algorithm with 0.3% fee.
-Returns actual amountOut and emits event.
-
-getPrice(tokenA, tokenB)
-Returns the price of tokenA in terms of tokenB based on current reserves.
-Value uses 18 decimals.
-
-getAmountOut(amountIn, reserveIn, reserveOut)
-Calculates expected output for swapping amountIn of tokenIn.
-Accounts for current reserves and applies fee.
-
-🧮 Swap Formula
-Uses constant product model with 0.3% fee:
-amountInWithFee = amountIn * 997
-amountOut = (amountInWithFee * reserveOut) / (reserveIn * 1000 + amountInWithFee)
-
-📦 Events
-LiquidityAdded: When liquidity is added to a pool.
-LiquidityRemoved: When liquidity is withdrawn.
-TokensSwapped: When a token swap occurs.
-
-🚀 Typical Workflow
-Add liquidity: User deposits tokenA + tokenB, receives liquidity tokens.
-Execute swap: Another user swaps tokens using the created pair.
-Remove liquidity: Original user withdraws their share, reclaiming tokens + earned fees.
-
-🔧 Requirements
-Solidity ^0.8.20
-OpenZeppelin:
-@openzeppelin/contracts/token/ERC20/IERC20.sol
-@openzeppelin/contracts/security/ReentrancyGuard.sol
