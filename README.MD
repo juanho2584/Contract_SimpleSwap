@@ -69,3 +69,9 @@ Security:
 - Uses OpenZeppelin's ReentrancyGuard to prevent reentrancy attacks on liquidity and swap operations.
 - Input validation is performed for deadlines, amount values, and reserve checks.
 
+Deployed Contracts on Sepolia:
+-----------------------------
+
+| **TokenA**   | `0x18a5321E8D655d846c67A1441bd88FEF3DCDf391`                                                           | [View on Etherscan](https://sepolia.etherscan.io/address/0x18a5321E8D655d846c67A1441bd88FEF3DCDf391#code) |
+| **TokenB**   | `0x26a1E5E72fda2a3F000205B981627cE8aC6205CB`                                                           | [View on Etherscan](https://sepolia.etherscan.io/address/0x26a1E5E72fda2a3F000205B981627cE8aC6205CB#code) |
+| **SimpleSwap** | `0x2fcB0a5C9Fa846A7A950Cdb191d9F3Fc03161FA8`                                                       | [View on Etherscan](https://sepolia.etherscan.io/address/0x2fcB0a5C9Fa846A7A950Cdb191d9F3Fc03161FA8#code) |
